@@ -36,10 +36,11 @@ WeKit 在未来会尝试解决微信交互中的痛点，让社交回归工具�
 
 # 参考项目 / Reference
 
-| 项目 | 描述 |
-| :--- | :--- |
-| [**QAuxiliary**](https://github.com/cinit/QAuxiliary) | QNotified phoenix - To make OICQ great again |
-| [**TimTool**](https://github.com/suzhelan/TimTool) | Tim功能性增强XPosed模块，为Tim增加更多趣味功能 |
+| 项目                                                             | 描述                                           |
+|:---------------------------------------------------------------|:---------------------------------------------|
+| [**QAuxiliary**](https://github.com/cinit/QAuxiliary)          | QNotified phoenix - To make OICQ great again |
+| [**TimTool**](https://github.com/suzhelan/TimTool)             | Tim功能性增强XPosed模块，为Tim增加更多趣味功能                |
+| [**WAuxiliary**](https://github.com/HdShare/WAuxiliary_Public) | WeChat Auxiliary Public                      |
 
 ---
 
