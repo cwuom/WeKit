@@ -368,6 +368,7 @@ public class MmkvConfigManagerImpl extends WeConfig {
 
     protected MmkvConfigManagerImpl(@NonNull String name) {
         mmkvId = Objects.requireNonNull(name, "name");
+        // 调用前需要等待模块mmkv初始化完毕
         mmkv = MMKV.mmkvWithID(name, MMKV.MULTI_PROCESS_MODE);
         file = new File(MMKV.getRootDir(), name);
     }

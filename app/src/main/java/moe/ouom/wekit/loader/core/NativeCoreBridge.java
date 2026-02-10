@@ -1,22 +1,17 @@
 package moe.ouom.wekit.loader.core;
 
-import static moe.ouom.wekit.util.io.FileUtils.copyFile;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import com.tencent.mmkv.MMKV;
 import java.io.File;
-import java.io.IOException;
 
 import moe.ouom.wekit.host.HostInfo;
-import moe.ouom.wekit.util.io.FileUtils;
 import moe.ouom.wekit.util.log.WeLogger;
 
 
 public class NativeCoreBridge {
     static {
-        // it will be an UnsatisfiedLinkError if first load..
         System.loadLibrary("dexkit");
         System.loadLibrary("wekit");
     }
@@ -31,69 +26,66 @@ public class NativeCoreBridge {
 
     public static void initNativeCore() {
         Context context = HostInfo.getApplication();
-
         // init mmkv
         initializeMmkvForPrimaryNativeLibrary(context);
     }
 
     /**
-     * Load native library and initialize MMKV
+     * 检查本地核心库是否已初始化
+     * @return true 如果已成功初始化，false 如果未初始化
+     */
+    public static boolean isNativeCoreInitialized() {
+        return sPrimaryNativeLibraryInitialized;
+    }
+
+    /**
+     * 设置本地核心库初始化状态
+     * @param initialized true表示已初始化，false表示未初始化
+     */
+    public static void setNativeCoreInitialized(boolean initialized) {
+        sPrimaryNativeLibraryInitialized = initialized;
+        if (initialized) {
+            WeLogger.i("Native core initialization status set to: initialized");
+        } else {
+            WeLogger.w("Native core initialization status set to: not initialized");
+        }
+    }
+
+    /**
+     * 加载本地库并初始化MMKV
      *
-     * @param ctx Application context
-     * @throws LinkageError if failed to load native library
+     * @param ctx 应用上下文
      */
     @SuppressLint("SdCardPath")
     public static void initializeMmkvForPrimaryNativeLibrary(@NonNull Context ctx) {
-        if (sPrimaryNativeLibraryInitialized) {
+        if (isNativeCoreInitialized()) {
             return;
         }
 
-        File filesDir = null;
+        // 获取微信的files目录
+        File appFilesDir = ctx.getFilesDir();
+        String packageName = ctx.getPackageName();
 
-        File[] externalDirs = ctx.getExternalMediaDirs();
+        WeLogger.i("Initializing NativeCoreBridge for package: " + packageName);
 
-        if (externalDirs != null && externalDirs.length > 0) {
-            filesDir = externalDirs[0];
-        }
-
-        if (filesDir == null) {
-            filesDir = ctx.getFilesDir();
-        }
-
-        File mmkvDir = new File(filesDir, "wekit_mmkv");
+        File mmkvDir = new File(appFilesDir, "mmkv");
+        // 不存在就创建mmkv目录
         if (!mmkvDir.exists()) {
-            mmkvDir.mkdirs();
+            boolean created = mmkvDir.mkdirs();
+            WeLogger.i("Created mmkv directory: " + created);
         }
 
-        // MMKV requires a ".tmp" cache directory, we have to create it manually
-        File cacheDir = new File(mmkvDir, ".tmp");
-        if (!cacheDir.exists()) {
-            cacheDir.mkdir();
-        }
+        // 初始化 MMKV
+        String mmkvRootPath = mmkvDir.getAbsolutePath();
+        String initializedPath = MMKV.initialize(ctx, mmkvRootPath);
 
-        File oldDir = new File(ctx.getFilesDir(), "wekit_mmkv");
-        if (oldDir.exists() && oldDir.isDirectory()) {
-            File[] files = oldDir.listFiles();
-            if (files != null) {
-                for (File src : files) {
-                    if (!src.isFile()) continue;
-                    File dest = new File(mmkvDir, src.getName());
-                    if (!dest.exists()) {
-                        try {
-                            copyFile(src, dest);
-                            WeLogger.i("Copy config file: " + src.getName());
-                        } catch (IOException e) {
-                            WeLogger.e(e);
-                        }
-                    }
-                }
-            }
-            FileUtils.deleteFile(oldDir);
-        }
-        MMKV.initialize(ctx, "/data/data/com.tencent.mm/files/mmkv");
+        WeLogger.i("MMKV initialized at: " + initializedPath);
+
+        // 创建必要的 MMKV 实例
         MMKV.mmkvWithID("global_config", MMKV.MULTI_PROCESS_MODE);
         MMKV.mmkvWithID("global_cache", MMKV.MULTI_PROCESS_MODE);
-        sPrimaryNativeLibraryInitialized = true;
-    }
 
+        setNativeCoreInitialized(true);
+        WeLogger.i("NativeCoreBridge initialization complete");
+    }
 }

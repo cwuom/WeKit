@@ -10,6 +10,7 @@ import java.util.Calendar;
 
 import de.robv.android.xposed.XposedBridge;
 import moe.ouom.wekit.config.WeConfig;
+import moe.ouom.wekit.loader.core.NativeCoreBridge;
 import moe.ouom.wekit.util.io.FileUtils;
 import moe.ouom.wekit.util.io.PathTool;
 
@@ -99,7 +100,7 @@ public class LogUtils {
 
     private static void addLog(String fileName, String Description, Object content, boolean isError) {
         try {
-            if (!WeConfig.getDefaultConfig().getBooleanOrFalse(PrekEnableLog)){
+            if (NativeCoreBridge.isNativeCoreInitialized() && !WeConfig.getDefaultConfig().getBooleanOrFalse(PrekEnableLog)){
                 return;
             }
         } catch (Exception e) {

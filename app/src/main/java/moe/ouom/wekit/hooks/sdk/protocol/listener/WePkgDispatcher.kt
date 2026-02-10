@@ -32,7 +32,8 @@ class WePkgDispatcher : ApiHookItem(), IDexFind {
                 val v0Var = param.args[1] ?: return@hookBefore
                 val originalCallback = param.args[2] ?: return@hookBefore
 
-                val uri = XposedHelpers.callMethod(v0Var, "getUri") as String
+                // 有时 getUri 返回 null
+                val uri = (XposedHelpers.callMethod(v0Var, "getUri") ?: "null") as String
                 val cgiId = XposedHelpers.callMethod(v0Var, "getType") as Int
                 try {
                     val reqWrapper = XposedHelpers.callMethod(v0Var, "getReqObj")
