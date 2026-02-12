@@ -302,6 +302,7 @@ android {
         )
         resources {
             merges += "META-INF/xposed/*"
+            merges += "org/mozilla/javascript/**"  // 合并 Mozila Rhino 所有资源
             excludes += "**"
         }
     }
@@ -942,6 +943,9 @@ dependencies {
     implementation(libs.blurview)
     implementation(libs.hutool.core)
     implementation(libs.nanohttpd)
+
+    // Mozila Rhino
+    implementation("io.apisense:rhino-android:1.3.0")
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
