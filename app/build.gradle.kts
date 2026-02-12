@@ -589,8 +589,26 @@ tasks.register("protectSensitiveCode") {
         val d8Name = if (System.getProperty("os.name").lowercase().contains("win")) "d8.bat" else "d8"
         val d8Path = "${android.sdkDirectory}/build-tools/${android.buildToolsVersion}/$d8Name"
 
-        project.exec {
-            commandLine(d8Path, "--release", "--min-api", "26", "--output", tempDir.absolutePath, *classFiles.map { it.absolutePath }.toTypedArray())
+        // 生成参数文件
+        val argsFile = tempDir.resolve("d8-args.txt")
+        // 写入并确保执行后删除
+        try {
+            argsFile.printWriter().use { writer ->
+                writer.println("--release")
+                writer.println("--min-api")
+                writer.println("26")
+                writer.println("--output")
+                writer.println(tempDir.absolutePath)
+                classFiles.forEach { writer.println(it.absolutePath) }
+            }
+
+            project.exec {
+                commandLine(d8Path, "@${argsFile.absolutePath}")
+            }
+        } finally {
+            if (!argsFile.delete() && argsFile.exists()) {
+                argsFile.deleteOnExit()
+            }
         }
 
         val dexFile = File(tempDir, "classes.dex")

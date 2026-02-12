@@ -199,7 +199,7 @@ class JsExecutor private constructor() {
             result
         } catch (e: Exception) {
             WeLogger.e("JS exec error: ${e.message}", e)
-            e.toString()
+            e.message
         }
     }
 

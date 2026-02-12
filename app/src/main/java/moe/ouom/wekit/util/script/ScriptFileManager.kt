@@ -13,7 +13,7 @@ import java.io.IOException
 class ScriptFileManager private constructor() {
 
     companion object {
-        private const val SCRIPT_DIR = "weikit_scripts"
+        private const val SCRIPT_DIR = "wekit_scripts"
         private const val SCRIPT_SUFFIX = ".json"
 
         @Volatile
