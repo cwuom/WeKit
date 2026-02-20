@@ -12,35 +12,23 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
-import android.os.PersistableBundle;
-import android.os.TestLooperManager;
+import android.os.*;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 import lombok.SneakyThrows;
 import moe.ouom.wekit.config.RuntimeConfig;
 import moe.ouom.wekit.constants.PackageConstants;
 import moe.ouom.wekit.util.common.ModuleRes;
 import moe.ouom.wekit.util.log.WeLogger;
+
+import java.lang.reflect.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Activity 占位 Hook 实现
@@ -48,6 +36,7 @@ import moe.ouom.wekit.util.log.WeLogger;
  */
 public class ActivityProxyHooks {
 
+    private static final String TAG = "ActivityProxyHooks";
     private static boolean __stub_hooked = false;
 
     public static class ActProxyMgr {
@@ -82,7 +71,10 @@ public class ActivityProxyHooks {
             mInstrumentation.setAccessible(true);
             Instrumentation instrumentation = (Instrumentation) mInstrumentation.get(sCurrentActivityThread);
             if (!(instrumentation instanceof ProxyInstrumentation)) {
-                mInstrumentation.set(sCurrentActivityThread, new ProxyInstrumentation(instrumentation));
+                // 创建代理对象
+                ProxyInstrumentation proxy = new ProxyInstrumentation(instrumentation);
+                // 替换掉系统的实例
+                mInstrumentation.set(sCurrentActivityThread, proxy);
             }
 
             // Hook Handler (mH)
@@ -119,6 +111,7 @@ public class ActivityProxyHooks {
             gDefaultField = activityManagerClass.getDeclaredField("gDefault");
         } catch (Exception err1) {
             activityManagerClass = Class.forName("android.app.ActivityManager");
+            //noinspection JavaReflectionMemberAccess
             gDefaultField = activityManagerClass.getDeclaredField("IActivityManagerSingleton");
         }
         gDefaultField.setAccessible(true);
@@ -133,7 +126,8 @@ public class ActivityProxyHooks {
             Method getMethod = singletonClass.getDeclaredMethod("get");
             getMethod.setAccessible(true);
             getMethod.invoke(gDefault);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         Object mInstance = mInstanceField.get(gDefault);
         if (mInstance == null) {
@@ -171,6 +165,7 @@ public class ActivityProxyHooks {
         }
     }
 
+    @SuppressLint("PrivateApi")
     private static void hookPackageManager(Context ctx, Object sCurrentActivityThread, Class<?> clazz_ActivityThread) {
         try {
             Field sPackageManagerField = clazz_ActivityThread.getDeclaredField("sPackageManager");
@@ -217,8 +212,7 @@ public class ActivityProxyHooks {
                         if (shouldProxy(raw)) {
                             args[i] = createTokenWrapper(raw);
                         }
-                    }
-                    else if (args[i] instanceof Intent[] rawIntents) {
+                    } else if (args[i] instanceof Intent[] rawIntents) {
                         for (int j = 0; j < rawIntents.length; j++) {
                             if (shouldProxy(rawIntents[j])) {
                                 rawIntents[j] = createTokenWrapper(rawIntents[j]);
@@ -429,8 +423,7 @@ public class ActivityProxyHooks {
          */
         @SneakyThrows
         @Override
-        public Activity newActivity(ClassLoader cl, String className, Intent intent)
-                throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+        public Activity newActivity(ClassLoader cl, String className, Intent intent) {
 
             // 兜底：如果 intent 仍然是 stub 的 wrapper，尝试还原
             Intent recovered = tryRecoverIntent(intent);
@@ -445,7 +438,7 @@ public class ActivityProxyHooks {
             } catch (ClassNotFoundException e) {
                 if (ActProxyMgr.isModuleProxyActivity(className)) {
                     ClassLoader moduleCL = Objects.requireNonNull(getClass().getClassLoader());
-                    return (Activity) moduleCL.loadClass(className).newInstance();
+                    return (Activity) moduleCL.loadClass(className).getDeclaredConstructor().newInstance();
                 }
                 throw e;
             }
@@ -471,10 +464,11 @@ public class ActivityProxyHooks {
                 ClassLoader hybridCL = ParcelableFixer.getHybridClassLoader();
                 if (hybridCL != null) {
                     try {
-                        Field f = Activity.class.getDeclaredField("mClassLoader");
+                        @SuppressWarnings("JavaReflectionMemberAccess") Field f = Activity.class.getDeclaredField("mClassLoader");
                         f.setAccessible(true);
                         f.set(activity, hybridCL);
-                    } catch (Throwable ignored) {}
+                    } catch (Throwable ignored) {
+                    }
 
                     Intent intent = activity.getIntent();
                     if (intent != null) {
@@ -762,7 +756,7 @@ public class ActivityProxyHooks {
         }
 
         @Override
-        public void callActivityOnSaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState, PersistableBundle outPersistentState) {
+        public void callActivityOnSaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
             mBase.callActivityOnSaveInstanceState(activity, outState, outPersistentState);
         }
 
@@ -776,11 +770,15 @@ public class ActivityProxyHooks {
             mBase.callActivityOnUserLeaving(activity);
         }
 
+        @SuppressWarnings("deprecation")
+        @Deprecated
         @Override
         public void startAllocCounting() {
             mBase.startAllocCounting();
         }
 
+        @SuppressWarnings("deprecation")
+        @Deprecated
         @Override
         public void stopAllocCounting() {
             mBase.stopAllocCounting();
@@ -887,7 +885,11 @@ public class ActivityProxyHooks {
         private static class Entry {
             Intent intent;
             long timestamp;
-            Entry(Intent i) { intent = i; timestamp = System.currentTimeMillis(); }
+
+            Entry(Intent i) {
+                intent = i;
+                timestamp = System.currentTimeMillis();
+            }
         }
 
         private static final Map<String, Entry> sCache = new ConcurrentHashMap<>();
