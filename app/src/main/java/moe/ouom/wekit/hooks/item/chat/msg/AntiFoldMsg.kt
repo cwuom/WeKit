@@ -21,10 +21,10 @@ class AntiFoldMsg : BaseSwitchFunctionHookItem(), IDexFind {
             matcher {
                 usingStrings(".msgsource.sec_msg_node.clip-len")
                 paramTypes(
-                    Int::class.java,
-                    CharSequence::class.java,
-                    null,
-                    Boolean::class.javaPrimitiveType,
+                    "int",
+                    "java.lang.CharSequence",
+                    "com.tencent.mm.ui.widget.MMNeat7extView",
+                    "boolean",
                     null,
                     null
                 )

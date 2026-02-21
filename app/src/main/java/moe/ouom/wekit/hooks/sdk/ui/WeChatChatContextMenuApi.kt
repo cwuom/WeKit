@@ -12,6 +12,7 @@ import moe.ouom.wekit.hooks.core.annotation.HookItem
 import moe.ouom.wekit.util.log.WeLogger
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.enums.StringMatchType
+import java.lang.reflect.Modifier
 import java.util.concurrent.CopyOnWriteArrayList
 
 @HookItem(path = "API/聊天右键菜单增强")
@@ -99,8 +100,20 @@ class WeChatChatContextMenuApi : ApiHookItem(), IDexFind {
         // 可能会变更
         val messageTagClass = item::class.java.superclass
         val messageHolderClass = messageTagClass.superclass
-        val messageField = messageHolderClass.getField("a")
-        val messageObject = messageField.get(item)
+        var messageObject: Any?
+        // 新版使用方法获取 不存在父类
+        if (messageHolderClass === Any::class.java) {
+            messageObject = messageTagClass.methods.find { method ->
+                Modifier.isPublic(method.modifiers) &&
+                        !Modifier.isStatic(method.modifiers) &&
+                        method.returnType.`package`?.name?.startsWith("com.tencent.mm.storage") == true &&
+                        method.parameterCount == 0
+            }!!.invoke(item)
+            // 部分旧版通过获取字段实现 （可能在部分旧版本不可以 因为模块最低版本为8.0.67 所以不想兼容了）
+        } else {
+            val messageField = messageHolderClass.getField("a")
+            messageObject = messageField.get(item)
+        }
         val messageImplClass = messageObject::class.java
         val messageWrapperClass = messageImplClass.superclass
         val databaseMappingClass = messageWrapperClass.superclass

@@ -17,6 +17,7 @@ class AvatarTransparent : BaseSwitchFunctionHookItem(), IDexFind {
         val descriptors = mutableMapOf<String, String>()
 
         methodSaveBitmap.find(dexKit, descriptors = descriptors) {
+            searchPackages("com.tencent.mm.sdk.platformtools")
             matcher {
                 usingStrings("saveBitmapToImage pathName null or nil", "MicroMsg.BitmapUtil")
             }

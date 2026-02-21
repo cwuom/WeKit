@@ -279,7 +279,7 @@ class ScriptManagerDialog(
 
         // 设置现有值
         etName.text = script.name
-        etDesc.text = script.description ?: ""
+        etDesc.text = script.description
         etContent.text = script.content
 
         MaterialDialog(wrappedContext)
@@ -462,8 +462,10 @@ class ScriptManagerDialog(
                             existingScript.description = newDescription
                             existingScript.modifiedTime = System.currentTimeMillis()
 
+                            existingScript.enabled = false
+
                             scriptManager.saveScript(existingScript)
-                            showToast(context, "已覆盖相同ID的脚本")
+                            showToast(context, "已覆盖相同ID的脚本 请手动启用导入脚本")
 
                             contentContainer.removeAllViews()
                             renderScriptList()
@@ -475,6 +477,7 @@ class ScriptManagerDialog(
                             name = newName,
                             content = newContent,
                             description = newDescription,
+                            enabled = false,
                             order = scripts.size
                         )
 
@@ -483,7 +486,7 @@ class ScriptManagerDialog(
 
                         contentContainer.removeAllViews()
                         renderScriptList()
-                        showToast(context, "已从剪贴板导入脚本")
+                        showToast(context, "已从剪贴板导入脚本 请手动启用导入脚本")
                     } else {
                         showToast(context, "剪贴板内容格式不正确，缺少必要字段(name, id, description, content)")
                     }
