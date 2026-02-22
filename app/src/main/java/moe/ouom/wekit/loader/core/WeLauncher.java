@@ -118,7 +118,11 @@ public class WeLauncher {
                     Activity activity = (Activity) param.thisObject;
                     RuntimeConfig.setLauncherUIActivity(activity);
                     SharedPreferences sharedPreferences = activity.getSharedPreferences("com.tencent.mm_preferences", 0);
-                    RuntimeConfig.setmmPrefs(sharedPreferences);
+
+                    RuntimeConfig.setLogin_weixin_username(sharedPreferences.getString("login_weixin_username", ""));
+                    RuntimeConfig.setLast_login_nick_name(sharedPreferences.getString("last_login_nick_name", ""));
+                    RuntimeConfig.setLogin_user_name(sharedPreferences.getString("login_user_name", ""));
+                    RuntimeConfig.setLast_login_uin(sharedPreferences.getString("last_login_uin", "0"));
                 }
             });
 

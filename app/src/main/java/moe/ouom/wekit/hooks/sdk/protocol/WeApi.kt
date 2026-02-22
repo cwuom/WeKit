@@ -15,6 +15,14 @@ object WeApi {
      * 获取当前登录的微信ID
      */
     fun getSelfWxId(): String {
+        val sharedPreferences: SharedPreferences =
+            HostInfo.getApplication().getSharedPreferences("com.tencent.mm_preferences", 0)
+
+        RuntimeConfig.setLogin_weixin_username(sharedPreferences.getString("login_weixin_username", ""))
+        RuntimeConfig.setLast_login_nick_name(sharedPreferences.getString("last_login_nick_name", ""))
+        RuntimeConfig.setLogin_user_name(sharedPreferences.getString("login_user_name", ""))
+        RuntimeConfig.setLast_login_uin(sharedPreferences.getString("last_login_uin", "0"))
+
         return RuntimeConfig.getLogin_weixin_username()
     }
 
