@@ -16,7 +16,7 @@ import moe.ouom.wekit.intf.IMenu
 import moe.ouom.wekit.util.common.Toasts
 
 @SuppressLint("DiscouragedApi")
-@HookItem(path = "聊天与消息/发送 AppMsg(XML)", desc = "长按'发送'按钮，自动发送卡片消息")
+@HookItem(path = "聊天与消息/发送 AppMsg(XML)", desc = "长按'发送'按钮，自动发送卡片消息或快捷菜单")
 class WeSendXml : BaseSwitchFunctionHookItem() {
     override fun entry(classLoader: ClassLoader) {
         ShortcutMenu.menus.add(object : IMenu {
