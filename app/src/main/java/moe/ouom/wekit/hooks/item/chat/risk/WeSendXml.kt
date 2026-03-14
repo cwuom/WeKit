@@ -1,34 +1,48 @@
 package moe.ouom.wekit.hooks.item.chat.risk
 
 import android.annotation.SuppressLint
-import android.content.ContentValues
 import android.content.Context
-import androidx.core.net.toUri
+import android.widget.EditText
 import com.afollestad.materialdialogs.MaterialDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import de.robv.android.xposed.XposedHelpers
-import moe.ouom.wekit.config.WeConfig
-import moe.ouom.wekit.constants.Constants.Companion.TYPE_LUCKY_MONEY
-import moe.ouom.wekit.constants.Constants.Companion.TYPE_LUCKY_MONEY_EXCLUSIVE
-import moe.ouom.wekit.core.dsl.dexClass
-import moe.ouom.wekit.core.dsl.dexMethod
-import moe.ouom.wekit.core.model.BaseClickableFunctionHookItem
+import moe.ouom.wekit.core.model.BaseHookItem
 import moe.ouom.wekit.core.model.BaseSwitchFunctionHookItem
-import moe.ouom.wekit.dexkit.intf.IDexFind
 import moe.ouom.wekit.hooks.core.annotation.HookItem
-import moe.ouom.wekit.hooks.sdk.api.WeDatabaseListener
-import moe.ouom.wekit.hooks.sdk.api.WeNetworkApi
-import moe.ouom.wekit.ui.creator.dialog.item.chat.risk.WeRedPacketConfigDialog
-import moe.ouom.wekit.util.log.WeLogger
-import org.json.JSONObject
-import org.luckypray.dexkit.DexKitBridge
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.random.Random
+import moe.ouom.wekit.hooks.item.chat.msg.ShortcutMenu
+import moe.ouom.wekit.hooks.sdk.api.WeMessageApi
+import moe.ouom.wekit.hooks.sdk.ui.WeChatFooterApi
+import moe.ouom.wekit.intf.IMenu
+import moe.ouom.wekit.util.common.Toasts
 
 @SuppressLint("DiscouragedApi")
 @HookItem(path = "聊天与消息/发送 AppMsg(XML)", desc = "长按'发送'按钮，自动发送卡片消息")
 class WeSendXml : BaseSwitchFunctionHookItem() {
     override fun entry(classLoader: ClassLoader) {
-        // 实现逻辑在 WeChatFooterApi
+        ShortcutMenu.menus.add(object : IMenu {
+            override val creator: BaseHookItem
+                get() = this@WeSendXml
+            override val menuName: String
+                get() = "发送 AppMsg(XML)"
+            override val onClick: (context: Context, footer: Any) -> Unit
+                get() = { context, footer ->
+                    MaterialAlertDialogBuilder(context).apply {
+                        setTitle("发送 AppMsg(XML)")
+
+                        val xml = EditText(context).apply {
+                            hint = "请输入 XML"
+                        }
+
+                        setView(xml)
+                        setPositiveButton("发送") { _, _ ->
+                            val xmlContent = xml.text.toString()
+                            WeMessageApi.INSTANCE?.sendXmlAppMsg(XposedHelpers.getAdditionalInstanceField(footer,
+                                WeChatFooterApi.FIELD_TO_USER) as String, xmlContent)
+                            Toasts.showToast(context, "发送成功")
+                        }
+                    }.show()
+                }
+        })
     }
 
     override fun onBeforeToggle(newState: Boolean, context: Context): Boolean {
