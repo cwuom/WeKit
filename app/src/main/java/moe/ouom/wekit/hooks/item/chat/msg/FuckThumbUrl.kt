@@ -2,10 +2,7 @@ package moe.ouom.wekit.hooks.item.chat.msg
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.webkit.MimeTypeMap
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
@@ -16,8 +13,6 @@ import moe.ouom.wekit.ui.CommonContextWrapper
 import moe.ouom.wekit.util.common.SyncUtils
 import moe.ouom.wekit.util.common.Toasts
 import moe.ouom.wekit.util.log.WeLogger
-import java.io.File
-import java.io.FileOutputStream
 
 
 @HookItem(path = "聊天与消息/获取预览图数据", desc = "去别的软件随便分享内容，然后就会拦截")
