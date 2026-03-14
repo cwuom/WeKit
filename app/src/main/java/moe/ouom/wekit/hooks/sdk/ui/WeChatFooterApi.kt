@@ -21,7 +21,9 @@ class WeChatFooterApi : ApiHookItem() {
         private const val TAG = "WeChatFooterApi"
         private const val CLASS_CHAT_FOOTER = "com.tencent.mm.pluginsdk.ui.chat.ChatFooter"
 
-        private const val FIELD_TO_USER = "wekit_cache_toUser"
+        const val FIELD_TO_USER = "wekit_cache_toUser"
+
+        val listener = mutableListOf<(chatFooter: Any) -> Unit>()
     }
 
     override fun entry(classLoader: ClassLoader) {
@@ -33,6 +35,9 @@ class WeChatFooterApi : ApiHookItem() {
                 { param ->
                     val chatFooterInstance = param.thisObject
                     findAndBindSendButton(chatFooterInstance)
+                    listener.forEach { listener ->
+                        listener(chatFooterInstance)
+                    }
                 },
                 Context::class.java,
                 AttributeSet::class.java,
