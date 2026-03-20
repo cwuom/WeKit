@@ -2,6 +2,7 @@ package moe.ouom.wekit.util.common
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Application
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -10,17 +11,18 @@ import android.content.Intent
 import android.os.Handler
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.net.toUri
+import androidx.core.view.size
 import de.robv.android.xposed.XposedBridge
 import moe.ouom.wekit.util.log.WeLogger
 import org.json.JSONArray
 import org.json.JSONObject
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Objects
-import androidx.core.view.size
-import androidx.core.net.toUri
 import java.util.regex.Pattern
 
 object Utils {
@@ -283,5 +285,31 @@ object Utils {
         val clipboardManager =
             context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboardManager.setPrimaryClip(clipData)
+    }
+
+    fun getCurrentActivity(): Activity? {
+        try {
+            val activityThreadClass = Class.forName(
+                "android.app.ActivityThread",
+                false,
+                Application::class.java.getClassLoader()
+            )
+            val activityThread = activityThreadClass.getMethod("currentActivityThread").invoke(null)
+            val activitiesField: Field = activityThreadClass.getDeclaredField("mActivities")
+            activitiesField.isAccessible = true
+            for (activityRecord in (activitiesField.get(activityThread) as MutableMap<*, *>).values) {
+                val activityRecordClass: Class<*> = activityRecord!!.javaClass
+                val pausedField: Field = activityRecordClass.getDeclaredField("paused")
+                pausedField.isAccessible = true
+                if (!pausedField.getBoolean(activityRecord)) {
+                    val activityField: Field = activityRecordClass.getDeclaredField("activity")
+                    activityField.isAccessible = true
+                    return activityField.get(activityRecord) as Activity?
+                }
+            }
+        } catch (e: java.lang.Exception) {
+            WeLogger.e(e)
+        }
+        return null
     }
 }
