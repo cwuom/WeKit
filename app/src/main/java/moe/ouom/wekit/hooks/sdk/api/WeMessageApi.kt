@@ -724,6 +724,14 @@ class WeMessageApi : ApiHookItem(), IDexFind {
         return WeAppMsgApi.INSTANCE?.sendXmlAppMsg(toUser, title, appId, null, null, xmlContent) ?: false
     }
 
+    fun sendXmlAppMsg(toUser: String, xmlContent: String, data: ByteArray): Boolean {
+        val appId = extractXmlAttr(xmlContent, "appid")
+        val title = extractXmlTag(xmlContent, "title")
+
+        WeLogger.d(TAG, "解析信息: AppId=$appId, Title=$title")
+        return WeAppMsgApi.INSTANCE?.sendXmlAppMsg(toUser, title, appId, null, data, xmlContent) ?: false
+    }
+
     /**
      * 使用微信内部 VFS 引擎进行物理拷贝
      */
