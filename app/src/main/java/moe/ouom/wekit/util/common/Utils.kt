@@ -2,10 +2,11 @@ package moe.ouom.wekit.util.common
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
-import android.net.Uri
 import android.os.Handler
 import android.view.View
 import android.view.ViewGroup
@@ -265,5 +266,22 @@ object Utils {
             // ignore
         }
         return ""
+    }
+
+    /**
+     * Copy text to system clipboard
+     *
+     * @param context [Context]
+     * @param text    text will be copied.
+     */
+    @JvmStatic
+    fun copyToClipboard(context: Context, text: CharSequence) {
+        if (text.isEmpty()) {
+            return
+        }
+        val clipData = ClipData.newPlainText("", text)
+        val clipboardManager =
+            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboardManager.setPrimaryClip(clipData)
     }
 }
