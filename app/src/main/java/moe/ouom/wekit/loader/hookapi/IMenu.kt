@@ -1,4 +1,4 @@
-package moe.ouom.wekit.intf
+package moe.ouom.wekit.loader.hookapi
 
 import android.content.Context
 import moe.ouom.wekit.core.model.BaseHookItem

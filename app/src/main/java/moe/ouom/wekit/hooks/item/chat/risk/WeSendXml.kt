@@ -12,7 +12,7 @@ import moe.ouom.wekit.hooks.core.annotation.HookItem
 import moe.ouom.wekit.hooks.item.chat.msg.ShortcutMenu
 import moe.ouom.wekit.hooks.sdk.api.WeMessageApi
 import moe.ouom.wekit.hooks.sdk.ui.WeChatFooterApi
-import moe.ouom.wekit.intf.IMenu
+import moe.ouom.wekit.loader.hookapi.IMenu
 import moe.ouom.wekit.util.common.Toasts
 
 @SuppressLint("DiscouragedApi")

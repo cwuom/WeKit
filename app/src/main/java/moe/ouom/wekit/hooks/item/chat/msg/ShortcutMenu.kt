@@ -6,7 +6,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import moe.ouom.wekit.core.model.BaseSwitchFunctionHookItem
 import moe.ouom.wekit.hooks.core.annotation.HookItem
 import moe.ouom.wekit.hooks.sdk.ui.WeChatFooterApi
-import moe.ouom.wekit.intf.IMenu
+import moe.ouom.wekit.loader.hookapi.IMenu
 import moe.ouom.wekit.ui.CommonContextWrapper
 import moe.ouom.wekit.util.log.WeLogger
 

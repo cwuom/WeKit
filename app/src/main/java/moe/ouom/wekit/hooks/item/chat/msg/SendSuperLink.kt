@@ -10,7 +10,7 @@ import moe.ouom.wekit.core.model.BaseSwitchFunctionHookItem
 import moe.ouom.wekit.hooks.core.annotation.HookItem
 import moe.ouom.wekit.hooks.sdk.api.WeMessageApi
 import moe.ouom.wekit.hooks.sdk.ui.WeChatFooterApi
-import moe.ouom.wekit.intf.IMenu
+import moe.ouom.wekit.loader.hookapi.IMenu
 import moe.ouom.wekit.util.common.Toasts
 
 @HookItem(path = "聊天与消息/发送超链接", desc = "快捷菜单 发送超链接")
