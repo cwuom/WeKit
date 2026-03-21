@@ -7,6 +7,7 @@ import de.robv.android.xposed.XposedHelpers
 import moe.ouom.wekit.config.WeConfig
 import moe.ouom.wekit.constants.Constants
 import moe.ouom.wekit.hooks.core.factory._ExceptionFactory
+import moe.ouom.wekit.hooks.item.chat.msg.ShortcutMenu
 import moe.ouom.wekit.loader.startup.HybridClassLoader
 import moe.ouom.wekit.util.log.WeLogger
 import java.lang.reflect.Member
@@ -125,6 +126,10 @@ abstract class BaseHookItem {
         if (verboseLog) {
             WeLogger.d("BaseHookItem.unload() called for ${this::class.java.simpleName}, isLoad=$isLoad")
         }
+
+        // 卸载快捷菜单，为了防止重复代码直接写在这里
+        ShortcutMenu.menus.removeIf { it.creator == this }
+
         isLoad = false
         if (verboseLog) {
             WeLogger.d("BaseHookItem.unload() completed for ${this::class.java.simpleName}, isLoad=$isLoad")

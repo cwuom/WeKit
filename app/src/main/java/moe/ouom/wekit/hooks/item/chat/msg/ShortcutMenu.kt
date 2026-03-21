@@ -48,8 +48,8 @@ class ShortcutMenu : BaseSwitchFunctionHookItem() {
                                 collator.compare(a.menuName, b.menuName)
                             }
 
-                            val menuNames = sortedMenus.map { it.menuName }
-                            val menuFunc = sortedMenus.map { it.onClick }
+                            val menuNames = sortedMenus.filter { it.isShow() }.map { it.menuName }
+                            val menuFunc = sortedMenus.filter { it.isShow() }.map { it.onClick }
 
                             showQuickMenuPopup(
                                 context = context,

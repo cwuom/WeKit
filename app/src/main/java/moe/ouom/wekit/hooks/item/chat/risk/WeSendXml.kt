@@ -125,6 +125,8 @@ class WeSendXml : BaseSwitchFunctionHookItem() {
                 get() = this@WeSendXml
             override val menuName: String
                 get() = "发送 AppMsg(XML)"
+            override val isShow: () -> Boolean
+                get() = { this@WeSendXml.configIsEnable() }
             override val onClick: (context: Context, footer: Any) -> Unit
                 get() = { context, footer ->
                     MaterialAlertDialogBuilder(context).apply {

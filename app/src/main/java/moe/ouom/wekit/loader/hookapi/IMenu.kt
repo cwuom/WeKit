@@ -7,4 +7,5 @@ interface IMenu {
     val creator: BaseHookItem
     val menuName: String
     val onClick: (context: Context, footer: Any) -> Unit
+    val isShow: () -> Boolean
 }

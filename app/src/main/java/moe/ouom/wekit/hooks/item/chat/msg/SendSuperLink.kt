@@ -21,6 +21,8 @@ class SendSuperLink: BaseSwitchFunctionHookItem() {
                 get() = this@SendSuperLink
             override val menuName: String
                 get() = "发送超链接"
+            override val isShow: () -> Boolean
+                get() = { this@SendSuperLink.configIsEnable() }
             override val onClick: (context: Context, footer: Any) -> Unit
                 get() = { context, footer ->
                     MaterialAlertDialogBuilder(context).apply {
