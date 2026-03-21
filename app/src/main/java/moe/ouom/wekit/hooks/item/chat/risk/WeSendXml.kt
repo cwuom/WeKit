@@ -15,11 +15,13 @@ import moe.ouom.wekit.core.model.BaseSwitchFunctionHookItem
 import moe.ouom.wekit.hooks.core.annotation.HookItem
 import moe.ouom.wekit.hooks.item.chat.msg.ShortcutMenu
 import moe.ouom.wekit.hooks.sdk.api.WeMessageApi
+import moe.ouom.wekit.hooks.sdk.protocol.WePkgHelper
 import moe.ouom.wekit.hooks.sdk.ui.WeChatFooterApi
 import moe.ouom.wekit.loader.hookapi.IMenu
 import moe.ouom.wekit.util.common.Toasts
 import moe.ouom.wekit.util.common.Utils
 import moe.ouom.wekit.util.log.WeLogger
+import org.json.JSONObject
 
 @SuppressLint("DiscouragedApi")
 @HookItem(path = "聊天与消息/发送 AppMsg(XML)", desc = "长按'发送'按钮，自动发送卡片消息或快捷菜单")
@@ -146,6 +148,25 @@ class WeSendXml : BaseSwitchFunctionHookItem() {
                                     WeChatFooterApi.FIELD_TO_USER) as String, xmlContent, bytes)
                                 Toasts.showToast(context, "发送成功")
                             }
+                        }
+
+                        setNeutralButton("发送 (NewSendMsg)") { _, _ ->
+                            val reqBody = JSONObject("{\n" +
+                                    "  \"1\": 1,\n" +
+                                    "  \"2\": {\n" +
+                                    "    \"1\": {\n" +
+                                    "      \"1\": \"${XposedHelpers.getAdditionalInstanceField(footer, WeChatFooterApi.FIELD_TO_USER) as String}\"\n" +
+                                    "    },\n" +
+                                    "    \"2\": \"\",\n" +
+                                    "    \"3\": 42,\n" +
+                                    "    \"4\": ${System.currentTimeMillis() / 1000},\n" +
+                                    "    \"5\": -1349162404,\n" +
+                                    "    \"6\": \"\"\n" +
+                                    "  }\n" +
+                                    "}")
+                            reqBody.getJSONObject("2").put("2", xml.text.toString())
+                            WePkgHelper.INSTANCE?.sendCgi("/cgi-bin/micromsg-bin/newsendmsg", 522, 0, 0, reqBody.toString())
+                            Toasts.showToast(context, "发送成功, 自己不可见")
                         }
                     }.show()
                 }
