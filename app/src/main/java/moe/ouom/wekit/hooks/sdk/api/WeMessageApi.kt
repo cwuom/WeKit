@@ -640,6 +640,38 @@ class WeMessageApi : ApiHookItem(), IDexFind {
         }
     }
 
+    /** 发送带 MsgSource 的文本消息 */
+    fun sendTextWithMsgSource(toUser: String, text: String, msgSource: HashMap<String, String>): Boolean {
+        return try {
+            WeLogger.i(TAG, "[sendText] 准备发送文本消息: $text")
+            val sendMsgObject = getSendMsgObjectMethod?.invoke(null) ?: return false
+            val constructor = netSceneSendMsgClass?.getConstructor(
+                String::class.java, String::class.java, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Any::class.java
+            ) ?: return false
+            val msgObj = constructor.newInstance(toUser, text, 1, 1 /* merge */, msgSource)
+            postToQueueMethod?.invoke(sendMsgObject, msgObj) as? Boolean ?: false
+        } catch (e: Exception) {
+            WeLogger.e(TAG, "[sendText] Text 发送失败", e)
+            false
+        }
+    }
+
+    /** 发送 SceneMsg */
+    fun sendSceneMsg(toUser: String, text: String, type: Int, merge: Int,  msgSource: HashMap<String, String>?): Boolean {
+        return try {
+            WeLogger.i(TAG, "[sendSceneMsg] 准备发送消息: $text")
+            val sendMsgObject = getSendMsgObjectMethod?.invoke(null) ?: return false
+            val constructor = netSceneSendMsgClass?.getConstructor(
+                String::class.java, String::class.java, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Any::class.java
+            ) ?: return false
+            val msgObj = constructor.newInstance(toUser, text, type, merge, msgSource)
+            postToQueueMethod?.invoke(sendMsgObject, msgObj) as? Boolean ?: false
+        } catch (e: Exception) {
+            WeLogger.e(TAG, "[sendSceneMsg] 发送失败", e)
+            false
+        }
+    }
+
     /** 发送文件消息 */
     fun sendFile(talker: String, filePath: String, title: String, appid: String? = null): Boolean {
         return try {
