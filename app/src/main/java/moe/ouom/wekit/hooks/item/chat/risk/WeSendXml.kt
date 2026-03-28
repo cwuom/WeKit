@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.EditText
 import com.afollestad.materialdialogs.MaterialDialog
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.afollestad.materialdialogs.customview.customView
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
@@ -131,43 +131,60 @@ class WeSendXml : BaseSwitchFunctionHookItem() {
                 get() = { this@WeSendXml.configIsEnable() }
             override val onClick: (context: Context, footer: Any) -> Unit
                 get() = { context, footer ->
-                    MaterialAlertDialogBuilder(context).apply {
-                        setTitle("发送 AppMsg(XML)")
+                    val xml = EditText(context).apply {
+                        hint = "请输入 XML"
+                    }
 
-                        val xml = EditText(context).apply {
-                            hint = "请输入 XML"
-                        }
-
-                        setView(xml)
-                        setPositiveButton("发送") { _, _ ->
+                    MaterialDialog(context).apply {
+                        title(text = "发送 AppMsg(XML)")
+                        customView(view = xml)
+                        positiveButton(text = "发送") {
                             Toasts.showToast(context, "请选择图片")
                             HookImagePicker.pick(Utils.getCurrentActivity()!!) { bytes ->
                                 val xmlContent = xml.text.toString()
-                                if (bytes == null) return@pick Toasts.showToast(context, "失败")
-                                WeMessageApi.INSTANCE?.sendXmlAppMsg(XposedHelpers.getAdditionalInstanceField(footer,
-                                    WeChatFooterApi.FIELD_TO_USER) as String, xmlContent, bytes)
+                                if (bytes == null) {
+                                    Toasts.showToast(context, "失败")
+                                    return@pick
+                                }
+                                WeMessageApi.INSTANCE?.sendXmlAppMsg(
+                                    XposedHelpers.getAdditionalInstanceField(
+                                        footer,
+                                        WeChatFooterApi.FIELD_TO_USER
+                                    ) as String,
+                                    xmlContent,
+                                    bytes
+                                )
                                 Toasts.showToast(context, "发送成功")
                             }
                         }
+                        neutralButton(text = "发送 (NewSendMsg)") {
+                            val toUser = XposedHelpers.getAdditionalInstanceField(
+                                footer,
+                                WeChatFooterApi.FIELD_TO_USER
+                            ) as String
 
-                        setNeutralButton("发送 (NewSendMsg)") { _, _ ->
-                            val reqBody = JSONObject("{\n" +
-                                    "  \"1\": 1,\n" +
-                                    "  \"2\": {\n" +
-                                    "    \"1\": {\n" +
-                                    "      \"1\": \"${XposedHelpers.getAdditionalInstanceField(footer, WeChatFooterApi.FIELD_TO_USER) as String}\"\n" +
-                                    "    },\n" +
-                                    "    \"2\": \"\",\n" +
-                                    "    \"3\": 42,\n" +
-                                    "    \"4\": ${System.currentTimeMillis() / 1000},\n" +
-                                    "    \"5\": -1349162404,\n" +
-                                    "    \"6\": \"\"\n" +
-                                    "  }\n" +
-                                    "}")
+                            val reqBody = JSONObject(
+                                """
+            {
+              "1": 1,
+              "2": {
+                "1": {
+                  "1": "$toUser"
+                },
+                "2": "",
+                "3": 42,
+                "4": ${System.currentTimeMillis() / 1000},
+                "5": -1349162404,
+                "6": ""
+              }
+            }
+            """.trimIndent()
+                            )
                             reqBody.getJSONObject("2").put("2", xml.text.toString())
                             WePkgHelper.INSTANCE?.sendCgi("/cgi-bin/micromsg-bin/newsendmsg", 522, 0, 0, reqBody.toString())
                             Toasts.showToast(context, "发送成功, 自己不可见")
                         }
+                        negativeButton(text = "取消")
                     }.show()
                 }
         })
