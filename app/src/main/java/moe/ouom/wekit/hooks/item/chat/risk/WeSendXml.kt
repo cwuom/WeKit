@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.text.InputType
 import android.widget.EditText
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
@@ -15,13 +16,11 @@ import moe.ouom.wekit.core.model.BaseSwitchFunctionHookItem
 import moe.ouom.wekit.hooks.core.annotation.HookItem
 import moe.ouom.wekit.hooks.item.chat.msg.ShortcutMenu
 import moe.ouom.wekit.hooks.sdk.api.WeMessageApi
-import moe.ouom.wekit.hooks.sdk.protocol.WePkgHelper
 import moe.ouom.wekit.hooks.sdk.ui.WeChatFooterApi
 import moe.ouom.wekit.loader.hookapi.IMenu
 import moe.ouom.wekit.util.common.Toasts
 import moe.ouom.wekit.util.common.Utils
 import moe.ouom.wekit.util.log.WeLogger
-import org.json.JSONObject
 
 @SuppressLint("DiscouragedApi")
 @HookItem(path = "聊天与消息/发送 AppMsg(XML)", desc = "长按'发送'按钮，自动发送卡片消息或快捷菜单")
@@ -163,26 +162,26 @@ class WeSendXml : BaseSwitchFunctionHookItem() {
                                 WeChatFooterApi.FIELD_TO_USER
                             ) as String
 
-                            val reqBody = JSONObject(
-                                """
-            {
-              "1": 1,
-              "2": {
-                "1": {
-                  "1": "$toUser"
-                },
-                "2": "",
-                "3": 42,
-                "4": ${System.currentTimeMillis() / 1000},
-                "5": -1349162404,
-                "6": ""
-              }
-            }
-            """.trimIndent()
-                            )
-                            reqBody.getJSONObject("2").put("2", xml.text.toString())
-                            WePkgHelper.INSTANCE?.sendCgi("/cgi-bin/micromsg-bin/newsendmsg", 522, 0, 0, reqBody.toString())
-                            Toasts.showToast(context, "发送成功, 自己不可见")
+                            val xmlContent = xml.text.toString()
+
+                            val appType = EditText(context).apply {
+                                hint = "请输入 Type\n\n已知:\n- 个人名片 42\n- 位置分享 48"
+                                inputType = InputType.TYPE_CLASS_TEXT
+                            }
+                            MaterialDialog(context)
+                                .title(text = "请输入 Type")
+                                .customView(view = appType, scrollable = true)
+                                .positiveButton(text = "发送") {
+                                    WeMessageApi.INSTANCE?.sendSceneMsg(
+                                        toUser,
+                                        xmlContent,
+                                        appType.text.toString().toInt(),
+                                        0,
+                                        null
+                                    )
+                                    Toasts.showToast(context, "发送成功")
+                                }
+                                .show()
                         }
                         negativeButton(text = "取消")
                     }.show()
@@ -195,7 +194,7 @@ class WeSendXml : BaseSwitchFunctionHookItem() {
             MaterialDialog(context)
                 .title(text = "警告")
                 .message(text = "此功能可能导致账号异常，确定要启用吗?")
-                .positiveButton(text = "确定") { dialog ->
+                .positiveButton(text = "确定") { _ ->
                     applyToggle(true)
                 }
                 .negativeButton(text = "取消") { dialog ->
